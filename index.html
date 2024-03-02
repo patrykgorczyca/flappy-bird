@@ -1,28 +1,55 @@
-<!DOCTYPE html>
 <html>
   <head>
-    <title>Flappy Bird Game</title>
+    <title>Test Game</title>
     <style>
       body {
-        background-color: rgb(120, 180, 255);
-        margin: 0;
         overflow: hidden;
+        margin: 0;
+        text-align: center;
+        color: rgb(255, 255, 255);
+        font-family: Arial, Sans-Serif;
+        user-select: none;
+        background: linear-gradient(to bottom, rgb(0, 0, 0), rgb(0, 255, 0));
       }
-      #grass {
+      #deathscreen {
         width: 100%;
-        height: 90px;
-        background-color: rgb(0, 140, 0);
+        height: 100%;
         position: fixed;
-        bottom: 0;
+        top: 0;
+        left: 0;
+        z-index: 2;
+        display: none;
+        transition: background-color 1s ease;
+        background-color: rgba(0, 0, 0, 0.8);
       }
-      canvas {
-        display: block;
+      #youlost {
+        font-size: 70;
+        font-weight: 900;
+      }
+      #replay-button {
+        cursor: pointer;
+        width: 170px;
+        height: 60px;
+        border-radius: 16px;
+      }
+      #start-line {
+        width: 100%;
+        height: 700px;
+        position: fixed;
+        background-color: rgb(255, 0, 0);
+        top: 700px;
+        left: 0;
       }
     </style>
   </head>
   <body>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
-    <div id="grass"></div>
+    <div id="deathscreen">
+      <h1 id="youlost">You lost.</h1>
+      <button id="replay-button" onclick="replay()">Replay</button>
+    </div>
+    <canvas id="game-canvas" width="800" height="700">
+    </canvas>
+    <div id="start-line"></div>
     <script src="game.js"></script>
   </body>
 </html>
