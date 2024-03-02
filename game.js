@@ -1,114 +1,86 @@
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+const canvas = document.getElementById("game-canvas");
+const context = canvas.getContext("2d");
+let intervalId;
+let intervalTime = 1000;
+let stopped = false;
 
-const bird = {
-    x: 50,
-    y: canvas.height / 2,
-    radius: 20,
-    velocity: 0,
-
-    draw: function () {
-        ctx.fillStyle = '#FF5733';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.closePath();
-    },
-
-    update: function () {
-        this.velocity += 0.5; // Adjust gravity as needed
-        this.y += this.velocity;
-
-        // Ensure the bird stays within the canvas
-        if (this.y + this.radius > canvas.height) {
-            this.y = canvas.height - this.radius;
-            this.velocity = 0;
-        }
-    },
-
-    jump: function () {
-        this.velocity = -10; // Adjust jump strength as needed
-    },
-};
-
-const obstacles = [];
-
-function createObstacle() {
-    const gapHeight = 190; // Adjust the gap between upper and lower obstacles
-    const minHeight =   50; // Minimum height for the upper obstacle
-    const maxHeight = canvas.height - gapHeight - minHeight;
-
-    const upperHeight = Math.random() * (maxHeight - minHeight) + minHeight;
-    const lowerHeight = canvas.height - upperHeight - gapHeight;
-
-    obstacles.push({
-        x: canvas.width,
-        upperHeight: upperHeight,
-        lowerHeight: lowerHeight,
-        width: 30, // Adjust obstacle width
-        color: '#008000', // Adjust obstacle color
-    });
+const squares = [];
+let speed = 1;
+const player_square = {
+  x: canvas.width/2 - 25,
+  y: 20,
+  width: 50,
+  height: 50,
 }
 
-function updateObstacles() {
-    for (let i = obstacles.length - 1; i >= 0; i--) {
-        obstacles[i].x -= 2; // Adjust obstacle speed
-
-        // Remove obstacles that are off-screen
-        if (obstacles[i].x + obstacles[i].width < 0) {
-            obstacles.splice(i, 1);
-        }
-    }
-
-    // Create a new obstacle every 100 frames (adjust as needed)
-    if (frameCount % 100 === 0) {
-        createObstacle();
-    }
+function update_player_square() {
+  context.fillStyle = "blue";
+  context.fillRect(player_square.x, player_square.y, player_square.width, player_square.height);
 }
 
-function drawObstacles() {
-    for (const obstacle of obstacles) {
-        // Draw upper obstacle
-        ctx.fillStyle = obstacle.color;
-        ctx.fillRect(obstacle.x, 0, obstacle.width, obstacle.upperHeight);
-
-        // Draw lower obstacle
-        ctx.fillRect(obstacle.x, canvas.height - obstacle.lowerHeight, obstacle.width, obstacle.lowerHeight);
-    }
+function draw_square() {
+  context.fillStyle = "red";
+  const x = 25 + Math.random() * (canvas.width - 50);
+  const y = 700;
+  const width = 50;
+  const height = 50;
+  context.fillRect(x, y, width, height);
+  return {x, y, width, height};
 }
 
-let frameCount = 0;
+function update_kill_squares() {
+  squares.forEach(function(element){
+    element.y -= speed
+    context.fillStyle = "red";
+    context.fillRect(element.x, element.y, element.width, element.height);
+  })
+  speed += 0.002;
+  intervalTime -= 0.1;
+}
 
 function update() {
-    bird.update();
-    updateObstacles();
-
-    // Check for collisions with obstacles
-    for (const obstacle of obstacles) {
-        if (
-            bird.x + bird.radius > obstacle.x &&
-            bird.x - bird.radius < obstacle.x + obstacle.width &&
-            (bird.y - bird.radius < obstacle.upperHeight || bird.y + bird.radius > canvas.height - obstacle.lowerHeight)
-        ) {
-            // Collision detected, restart the game or handle as needed
-            alert('Game Over!');
-            obstacles.length = 0; // Clear obstacles array
-        }
+    if (!stopped) {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      update_kill_squares()
+      update_player_square()
     }
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawObstacles();
-    bird.draw();
-
-    frameCount++;
-
     requestAnimationFrame(update);
+    
+    squares.forEach(function(element) {
+      if (
+        player_square.x < element.x + 50 &&
+        player_square.x + 50 > element.x &&
+        player_square.y < element.y + 50 &&
+        player_square.y + 50 > element.y
+        ) {
+          stopped = true;
+          const deathscreen = document.getElementById("deathscreen");
+          deathscreen.style.display = "block";
+        }
+    })
 }
 
-document.addEventListener('keydown', function (event) {
-    if (event.code === 'Space') {
-        bird.jump();
-    }
-});
+update()
 
-update();
+function create_square() {
+  if (!stopped) {
+  squares.push(draw_square());
+  clearInterval(intervalId);
+  intervalId = setInterval(create_square, intervalTime)
+  }
+  
+}
+
+function replay() {
+  stopped = false
+  deathscreen.style.display = "none";
+  squares.splice(0, squares.length);
+  intervalTime = 1000;
+  speed = 1;
+}
+
+document.addEventListener("mousemove", function(event) {
+  player_square.x = event.x - 25
+})
+
+intervalId = setInterval(create_square, 1000)
